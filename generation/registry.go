@@ -39,26 +39,45 @@ func NewTreeModelRegistry() *TreeModelRegistry {
 	return reg
 }
 
-func (r *TreeModelRegistry) AddChild(parent widget.TreeNodeID, data TreeModel) (widget.TreeNodeID, error) {
+func (r *TreeModelRegistry) AddChild(parentID widget.TreeNodeID, data TreeModel) (widget.TreeNodeID, error) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
-	parentNode, ok := r.idMap[parent]
+	parentNode, ok := r.idMap[parentID]
 	if !ok {
 		return "", ErrNoSuchParent
 	}
 	if data == nil {
 		return "", ErrNilData
 	}
+	if err := r.propagateAdd(parentNode, data); err != nil {
+		return "", err
+	}
+	dataID := r.getID()
+	r.buildParentLinkage(parentID, data, dataID)
+	return dataID, nil
+}
+
+func (r *TreeModelRegistry) propagateAdd(parentNode TreeModel, data TreeModel) error {
 	if parentNode != nil {
 		if err := parentNode.AddChild(data); err != nil {
-			return "", err
+			return err
 		}
 	}
-	id := r.getID()
-	r.idMap[id] = data
-	r.childMap[parent] = append(r.childMap[parent], id)
-	r.parentMap[id] = parent
-	return id, nil
+	return nil
+}
+
+func (r *TreeModelRegistry) buildParentLinkage(parentID widget.TreeNodeID, child TreeModel, childID widget.TreeNodeID) {
+	r.idMap[childID] = child
+	r.childMap[parentID] = append(r.childMap[parentID], childID)
+	r.parentMap[childID] = parentID
+	r.buildExtendedLinkage(childID, child)
+}
+
+func (r *TreeModelRegistry) buildExtendedLinkage(parentID widget.TreeNodeID, parent TreeModel) {
+	for _, c := range parent.Children() {
+		cid := r.getID()
+		r.buildParentLinkage(parentID, c, cid)
+	}
 }
 
 func (r *TreeModelRegistry) RemoveChild(dataID widget.TreeNodeID) {
@@ -68,27 +87,40 @@ func (r *TreeModelRegistry) RemoveChild(dataID widget.TreeNodeID) {
 	if !ok {
 		return
 	}
-	parent := r.idMap[parentID]
+	r.propagateRemove(r.idMap[parentID], r.idMap[dataID])
+	r.tearDownParentLinkage(parentID, dataID)
+}
+
+func (r *TreeModelRegistry) propagateRemove(parent TreeModel, child TreeModel) {
+	if parent != nil {
+		for j, c := range parent.Children() {
+			if c == child {
+				parent.RemoveChildAt(j)
+			}
+		}
+	}
+}
+
+func (r *TreeModelRegistry) tearDownParentLinkage(parentID widget.TreeNodeID, childID widget.TreeNodeID) {
 	curChildren := r.childMap[parentID]
 	for i, cid := range curChildren {
-		if cid == dataID {
-			if parent != nil {
-				child := r.idMap[cid]
-				for j, c := range parent.Children() {
-					if c == child {
-						parent.RemoveChildAt(j)
-					}
-				}
-			}
+		if cid == childID {
 			r.childMap[parentID] = append(curChildren[:i], curChildren[i+1:]...)
 			break
 		}
 	}
-	delete(r.idMap, dataID)
+	r.tearDownExtendedLinkage(childID)
+	delete(r.idMap, childID)
 	if len(r.childMap[parentID]) == 0 {
 		delete(r.childMap, parentID)
 	}
-	delete(r.parentMap, dataID)
+	delete(r.parentMap, childID)
+}
+
+func (r *TreeModelRegistry) tearDownExtendedLinkage(parentID widget.TreeNodeID) {
+	for _, cid := range r.childMap[parentID] {
+		r.tearDownParentLinkage(parentID, cid)
+	}
 }
 
 func (r *TreeModelRegistry) Node(nodeID widget.TreeNodeID) TreeModel {

@@ -85,6 +85,6 @@ func (b *BaseTreeModel) RemoveChildAt(index int) TreeModel {
 		return nil
 	}
 	removed := b.children[index]
-	b.children = append(b.children[0:index], b.children[index+1:]...)
+	b.children = append(b.children[:index], b.children[index+1:]...)
 	return removed
 }

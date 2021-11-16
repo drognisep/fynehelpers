@@ -30,6 +30,20 @@ func TestTreeModelRegistry_AddChild(t *testing.T) {
 	assert.Equal(data2, dataChildren[0])
 }
 
+func TestTreeModelRegistry_AddChild_RegisterChildren(t *testing.T) {
+	assert := testify.New(t)
+	reg := NewTreeModelRegistry()
+	assert.NotNil(reg)
+
+	data := getTreeModelRegistryData()
+	data2 := getTreeModelRegistryData()
+	assert.NoError(data.AddChild(data2))
+
+	dataID, err := reg.AddChild(ModelRoot, data)
+	assert.NoError(err)
+	assert.Len(reg.childMap[dataID], 1)
+}
+
 func TestTreeModelRegistry_AddChild_Neg(t *testing.T) {
 	assert := testify.New(t)
 	reg := NewTreeModelRegistry()
@@ -82,6 +96,31 @@ func TestTreeModelRegistry_RemoveChild(t *testing.T) {
 	assert.Nil(reg.Children(ModelRoot), "Ensure that the child map is removed if it's empty")
 	_, ok := reg.parentMap[dataID]
 	assert.False(ok, "Parent map should no longer contain anything for dataID")
+}
+
+func TestTreeModelRegistry_RemoveChild_DeregisterChildren(t *testing.T) {
+	assert := testify.New(t)
+	reg := NewTreeModelRegistry()
+	assert.NotNil(reg)
+
+	data := getTreeModelRegistryData()
+	dataID, err := reg.AddChild(ModelRoot, data)
+	assert.NoError(err)
+
+	data2 := getTreeModelRegistryData()
+	data2ID, err := reg.AddChild(dataID, data2)
+	assert.NoError(err)
+	dataChildren := data.Children()
+	assert.Len(dataChildren, 1)
+	assert.Equal(data2, dataChildren[0])
+
+	reg.RemoveChild(dataID)
+	_, ok := reg.childMap[data2ID]
+	assert.False(ok)
+	_, ok = reg.idMap[data2ID]
+	assert.False(ok)
+	_, ok = reg.parentMap[dataID]
+	assert.False(ok)
 }
 
 func TestTreeModelRegistry_RemoveNonexistentChild(t *testing.T) {

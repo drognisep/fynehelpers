@@ -1,7 +1,6 @@
 package view
 
 import (
-	"log"
 	"sync"
 
 	"fyne.io/fyne/v2"
@@ -19,9 +18,10 @@ var _ fyne.SecondaryTappable = (*typeBaseNode)(nil)
 type typeBaseNode struct {
 	widget.BaseWidget
 
-	mux    sync.Mutex
+	mux    sync.RWMutex
 	id     widget.TreeNodeID
 	render *typeBaseNodeRenderer
+	tree   *TypeBaseTree
 }
 
 func (t *typeBaseNode) CreateRenderer() fyne.WidgetRenderer {
@@ -29,31 +29,44 @@ func (t *typeBaseNode) CreateRenderer() fyne.WidgetRenderer {
 	return t.render
 }
 
-func newTypeBaseNode() *typeBaseNode {
-	node := &typeBaseNode{}
+func newTypeBaseNode(tree *TypeBaseTree) *typeBaseNode {
+	node := &typeBaseNode{
+		tree: tree,
+	}
 	node.ExtendBaseWidget(node)
 	return node
 }
 
 func (t *typeBaseNode) update(id widget.TreeNodeID, model generation.TreeModel) {
+	t.mux.Lock()
 	t.id = id
 	if t.render != nil {
 		t.render.label.SetText(model.DisplayString())
 		t.render.icon.SetResource(model.DisplayIcon())
 	}
+	t.mux.Unlock()
 	t.Refresh()
 }
 
 func (t *typeBaseNode) Tapped(event *fyne.PointEvent) {
-	log.Printf("typeBaseNode '%s' tapped", t.id)
+	t.mux.RLock()
+	id := t.id
+	t.mux.RUnlock()
+	t.tree.Tapped(id, event)
 }
 
 func (t *typeBaseNode) DoubleTapped(event *fyne.PointEvent) {
-	log.Printf("typeBaseNode '%s' double tapped", t.id)
+	t.mux.RLock()
+	id := t.id
+	t.mux.RUnlock()
+	t.tree.DoubleTapped(id, event)
 }
 
 func (t *typeBaseNode) TappedSecondary(event *fyne.PointEvent) {
-	log.Printf("typeBaseNode '%s' secondary tapped", t.id)
+	t.mux.RLock()
+	id := t.id
+	t.mux.RUnlock()
+	t.tree.TappedSecondary(id, event)
 }
 
 var _ fyne.WidgetRenderer = (*typeBaseNodeRenderer)(nil)

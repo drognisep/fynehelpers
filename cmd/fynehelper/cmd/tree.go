@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"bytes"
+	"log"
+	"os"
 	"strings"
 	"text/template"
 
@@ -34,28 +36,41 @@ var (
 func init() {
 	generateCmd.AddCommand(treeCmd)
 
-	treeCmd.Flags().Bool(eventTappedFlag, false, "Indicates that the tree node should be tappable")
-	treeCmd.Flags().Bool(eventDoubleTappedFlag, false, "Indicates that the tree node should be double-tappable")
-	treeCmd.Flags().Bool(eventSecondTappedFlag, false, "Indicates that the tree node should be secondary-tappable")
+	treeCmd.Flags().BoolVar(&eventTappedVal, eventTappedFlag, false, "Indicates that the tree node should be tappable")
+	treeCmd.Flags().BoolVar(&eventDoubleTappedVal, eventDoubleTappedFlag, false, "Indicates that the tree node should be double-tappable")
+	treeCmd.Flags().BoolVar(&eventSecondTappedVal, eventSecondTappedFlag, false, "Indicates that the tree node should be secondary-tappable")
 }
 
-func generateTree(cmd *cobra.Command, args []string) {
+func generateTree(*cobra.Command, []string) {
 	normalization.TrimSpace(&packageVal, &fileVal, &typeVal)
 	cobra.CheckErr(validation.NoneBlank(map[string]string{
 		packageFlag: packageVal,
 		fileFlag:    fileVal,
 		typeFlag:    typeVal,
 	}))
-	var buf bytes.Buffer
-	cobra.CheckErr(treeTemplate.Execute(&buf, TreeGenParams{
+	fileVal = strings.TrimSuffix(fileVal, ".go")
+	var nodeBuf bytes.Buffer
+	var treeBuf bytes.Buffer
+	params := &TreeGenParams{
 		Package:         packageVal,
 		File:            fileVal,
 		TypeBase:        typeVal,
 		GenTapped:       eventTappedVal,
 		GenDoubleTapped: eventDoubleTappedVal,
 		GenSecondTapped: eventSecondTappedVal,
-	}))
-
+	}
+	cobra.CheckErr(treeNodeTemplate.Execute(&nodeBuf, params))
+	nodeBuf.WriteString("\n\n")
+	cobra.CheckErr(treeTemplate.Execute(&treeBuf, params))
+	treeBuf.WriteString("\n\n")
+	if err := os.WriteFile(fileVal + "Node.go", nodeBuf.Bytes(), 0766); err != nil {
+		log.Printf("Error writing to '%s': %v\n", fileVal, err)
+		return
+	}
+	if err := os.WriteFile(fileVal + "Tree.go", treeBuf.Bytes(), 0766); err != nil {
+		log.Printf("Error writing to '%s': %v\n", fileVal, err)
+		return
+	}
 }
 
 type TreeGenParams struct {
@@ -83,18 +98,7 @@ func (p *TreeGenParams) TypeBaseHidden() string {
 	}
 }
 
-const (
-	treeText = `
-package {{ .Package }}
-
-
-
-`
-	treeImplText = `
-package {{ .Package }}
-`
-)
-
 var (
+	treeNodeTemplate = template.Must(template.New("generateTreeNode").Parse(treeNodeText))
 	treeTemplate = template.Must(template.New("generateTree").Parse(treeText))
 )

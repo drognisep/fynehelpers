@@ -53,7 +53,6 @@ func generateTree(*cobra.Command, []string) {
 	var treeBuf bytes.Buffer
 	params := &TreeGenParams{
 		Package:         packageVal,
-		File:            fileVal,
 		TypeBase:        typeVal,
 		GenTapped:       eventTappedVal,
 		GenDoubleTapped: eventDoubleTappedVal,
@@ -75,7 +74,6 @@ func generateTree(*cobra.Command, []string) {
 
 type TreeGenParams struct {
 	Package         string
-	File            string
 	TypeBase        string
 	GenTapped       bool
 	GenDoubleTapped bool

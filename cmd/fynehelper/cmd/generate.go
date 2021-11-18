@@ -13,9 +13,6 @@ var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Used to generate code",
 	Long:  `Use the generate sub-command to create code in the current directory.`,
-	//Run: func(cmd *cobra.Command, args []string) {
-	//	fmt.Println("generate called")
-	//},
 }
 
 const (

@@ -62,11 +62,11 @@ func generateTree(*cobra.Command, []string) {
 	nodeBuf.WriteString("\n\n")
 	cobra.CheckErr(treeTemplate.Execute(&treeBuf, params))
 	treeBuf.WriteString("\n\n")
-	if err := os.WriteFile(fileVal + "Node.go", nodeBuf.Bytes(), 0766); err != nil {
+	if err := os.WriteFile(fileVal+"Node.go", nodeBuf.Bytes(), 0766); err != nil {
 		log.Printf("Error writing to '%s': %v\n", fileVal, err)
 		return
 	}
-	if err := os.WriteFile(fileVal + "Tree.go", treeBuf.Bytes(), 0766); err != nil {
+	if err := os.WriteFile(fileVal+"Tree.go", treeBuf.Bytes(), 0766); err != nil {
 		log.Printf("Error writing to '%s': %v\n", fileVal, err)
 		return
 	}
@@ -98,5 +98,5 @@ func (p *TreeGenParams) TypeBaseHidden() string {
 
 var (
 	treeNodeTemplate = template.Must(template.New("generateTreeNode").Parse(treeNodeText))
-	treeTemplate = template.Must(template.New("generateTree").Parse(treeText))
+	treeTemplate     = template.Must(template.New("generateTree").Parse(treeText))
 )

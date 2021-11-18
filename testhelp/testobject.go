@@ -9,7 +9,7 @@ import (
 var _ fyne.CanvasObject = (*testCanvasObject)(nil)
 
 type testCanvasObject struct {
-	mux sync.RWMutex
+	mux     sync.RWMutex
 	visible bool
 	minSize fyne.Size
 	size    fyne.Size
@@ -18,7 +18,7 @@ type testCanvasObject struct {
 
 func NewTestObject(size fyne.Size) fyne.CanvasObject {
 	return &testCanvasObject{
-		size: size,
+		size:    size,
 		minSize: size,
 	}
 }

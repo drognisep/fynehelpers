@@ -12,7 +12,7 @@ import (
 // as a replacement target that discards the existing canvas object instead.
 type MultiView struct {
 	container fyne.Container
-	mux sync.Mutex
+	mux       sync.Mutex
 	viewStack []fyne.CanvasObject
 }
 

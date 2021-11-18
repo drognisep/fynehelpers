@@ -29,21 +29,21 @@ func TestPaddingLayout_MinSize(t *testing.T) {
 			expected: obj1.MinSize(),
 		},
 		"Single object with margin": {
-			lyt:      &marginLayout{
-				top: 5,
+			lyt: &marginLayout{
+				top:    5,
 				bottom: 5,
-				left: 5,
-				right: 5,
+				left:   5,
+				right:  5,
 			},
 			objs:     []fyne.CanvasObject{obj1},
 			expected: obj1.MinSize().Add(fyne.NewSize(10, 10)),
 		},
 		"Multiple objects with margin": {
-			lyt:      &marginLayout{
-				top: 5,
+			lyt: &marginLayout{
+				top:    5,
 				bottom: 5,
-				left: 5,
-				right: 5,
+				left:   5,
+				right:  5,
 			},
 			objs:     []fyne.CanvasObject{obj1, obj2},
 			expected: obj1.MinSize().Add(fyne.NewSize(10, 10)),
@@ -66,43 +66,43 @@ func TestPaddingLayout_Layout(t *testing.T) {
 	obj2 := testhelp.NewTestObject(sz)
 
 	tests := map[string]struct {
-		lyt fyne.Layout
-		objs []fyne.CanvasObject
-		expectedSz fyne.Size
+		lyt         fyne.Layout
+		objs        []fyne.CanvasObject
+		expectedSz  fyne.Size
 		expectedPos fyne.Position
-	} {
+	}{
 		"Single object": {
-			lyt:      new(marginLayout),
-			objs:     []fyne.CanvasObject{obj1},
-			expectedSz: obj1.MinSize(),
+			lyt:         new(marginLayout),
+			objs:        []fyne.CanvasObject{obj1},
+			expectedSz:  obj1.MinSize(),
 			expectedPos: fyne.Position{},
 		},
 		"Multiple objects": {
-			lyt:      new(marginLayout),
-			objs:     []fyne.CanvasObject{obj1, obj2},
-			expectedSz: obj1.MinSize(),
+			lyt:         new(marginLayout),
+			objs:        []fyne.CanvasObject{obj1, obj2},
+			expectedSz:  obj1.MinSize(),
 			expectedPos: fyne.Position{},
 		},
 		"Single object with margin": {
-			lyt:      &marginLayout{
-				top: 5,
+			lyt: &marginLayout{
+				top:    5,
 				bottom: 5,
-				left: 5,
-				right: 5,
+				left:   5,
+				right:  5,
 			},
-			objs:     []fyne.CanvasObject{obj1},
-			expectedSz: obj1.MinSize(),
+			objs:        []fyne.CanvasObject{obj1},
+			expectedSz:  obj1.MinSize(),
 			expectedPos: fyne.NewPos(5, 5),
 		},
 		"Multiple objects with margin": {
-			lyt:      &marginLayout{
-				top: 5,
+			lyt: &marginLayout{
+				top:    5,
 				bottom: 5,
-				left: 5,
-				right: 5,
+				left:   5,
+				right:  5,
 			},
-			objs:     []fyne.CanvasObject{obj1, obj2},
-			expectedSz: obj1.MinSize(),
+			objs:        []fyne.CanvasObject{obj1, obj2},
+			expectedSz:  obj1.MinSize(),
 			expectedPos: fyne.NewPos(5, 5),
 		},
 	}
